@@ -1,0 +1,15 @@
+GlobalRank,Company,Sales,Profits,Assets,MarketValue
+307,KocHolding,47.1,1.3,61.1,13.6
+333,IsBankasi,12.4,1.9,112.7,16.8
+341,GarantiBankasi,9.8,1.9,99.2,22
+382,Akbank,8.2,1.7,91.6,20.6
+388,SabanciHolding,14.6,1,98.3,12.7
+543,Halkbank,6.2,1.5,61,13.3
+711,VakifBank,6.3,0.8,60.6,7.9
+802,TurkTelekom,7.1,1.5,9.5,15
+843,Turkcell,5.9,1.2,10.5,14.8
+1210,TurkishAirlines,8.3,0.6,10.5,4.8
+1245,Enka,5.7,0.6,8.2,8.3
+1788,AnadoluEfes,3.6,0.3,6.5,9
+1972,BIM,5.5,0.2,1.2,7.5
+1977,FordOtosan,5.5,0.4,2.6,4.5

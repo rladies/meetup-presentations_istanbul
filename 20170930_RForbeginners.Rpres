@@ -1,0 +1,467 @@
+R-Ladies Istanbul: R For Beginners
+========================================================
+author: Hazel Kavili
+date: 2017-09-30
+width: 1400
+height: 1280
+font-family: 'Helvetica'
+
+```{r, eval = TRUE, echo=FALSE, results=FALSE}
+library(tidyverse)
+```
+
+R and R Studio
+========================================================
+
+Let's meet with the most used IDE (integrated desktop environment) for R
+
+- Scripts, Console,
+  - Code and workflow are more reproducible if we can document everything that we do.
+- Environment, History, Connections
+- Files, Plots, Packages, Help, Viewer
+  - The viewer window will helpy ou to see Plots, Shiny applications, blog pages of you did!
+
+Looking for Help!
+========================================================
+- Ask Google
+- Search in [Stackoverflow](https://stackoverflow.com/questions/tagged/r)
+- [An introduction to R](http://cran.us.r-project.org/doc/manuals/R-intro.pdf)
+- [R for Data Science](http://r4ds.had.co.nz) book from Hadley Wickham & Garrett Grolemund
+- [Try R](http://tryr.codeschool.com)
+- R mailing list: first, learn how to ask questions!
+- [R Tutorials](http://www.tutorialspoint.com/r/)
+- Get help from R:
+
+```{r, eval = FALSE}
+help.start()
+help(mean)
+?mean
+example(mean)
+```
+
+Getting Started - I
+========================================================
+### **Motor Trend Car Road Tests - simple dataset**
+```{r}
+head(mtcars)
+```
+```{r}
+tail(mtcars)
+```
+
+Getting Started - II
+========================================================
+### **Teaching base or tidyverse way**
+
+Base R codes:
+```{r, eval = FALSE}
+mtcars$transmission <- 
+  ifelse(mtcars$am == 0, "automatic", "manual")
+```
+
+dplyr codes:
+```{r, eval = FALSE}
+mtcars <- mtcars %>%
+  mutate(transmission = case_when(am == 0 ~ "automatic", am == 1 ~ "manual"))
+```
+
+Getting Started - III
+========================================================
+### **Teaching base or tidyverse way**
+#### **Visualisation**
+Base R codes:
+```{r, eval = FALSE}
+mtcars$trans_color <- 
+  ifelse(mtcars$transmission == "automatic", "green", "blue")
+
+pdf("plots/scatter_base.pdf", width = 5, height = 3)
+plot(mtcars$mpg ~ mtcars$disp, col = mtcars$trans_color)
+legend("topright", 
+       legend = c("automatic", "manual"), 
+       pch = 1, col = c("green", "blue"))
+dev.off()
+```
+
+ggplot codes:
+```{r, eval = FALSE}
+p1 <- ggplot(mtcars, aes(x = disp, y = mpg, color = transmission)) +
+       geom_point()
+
+ggsave("plots/scatter_tidy.pdf", p1, width = 5, height = 3)
+```
+
+
+Getting Started - IV
+========================================================
+
+**R commands:**
+- are case sensitive
+- can be seperated either by a semi-colon(;), or by a newline
+- #comment
+
+**Objects:**
+- varibables, arrays of numbers, character strings, functions
+
+Getting Started - V
+========================================================
+
+**Assignment**  and **Basic Operators**
+- use **<-** for assigments
+- +,-, *, /, ^, %%
+
+**Logical Operators**
+- <,>, <=, >=, ==, !=, !x, x & y, x | y
+
+**Others**
+- sum, sqrt, min, max, mean, var, sd, abs, summary
+
+Most Frequently Used Objects
+========================================================
+- Vectors
+- List
+- Matrices
+- Arrays
+- Factors
+- Data Frames
+
+Vectors
+========================================================
+- use **c()** for concatenate more than one element.
+- in programming vectors are variable sized sequence of values (not necessarily numbers).
+```{r}
+books <- c("history", "sci-fi", "fantasy")
+print(books)
+
+print(class(books))
+```
+```{r}
+ages <- c(12,13,14,15,9,8)
+print(ages)
+print(class(ages))
+```
+
+
+
+Examples
+========================================================
+```{r}
+#this is R-Ladies Istanbul
+X <- 10
+x <- 5
+print(paste("X is", X))
+print(paste("x is", x))
+cat("X and x are equal? = ", X == x)
+```
+
+```{r}
+myNumbers <- c(1:10) # c is short for concatenate
+rep(myNumbers, times = 3)
+twice <- rep(myNumbers, each = 2)
+print(twice)
+```
+
+Examples - II
+========================================================
+```{r}
+y <- c(1,2,3,10,15,20)
+z <- c(y,4,5,6,y)
+print(y)
+```
+
+- Vector Arithmetic
+```{r}
+5/y
+5*y
+y^2
+sqrt(y)
+```
+
+Examples - III
+========================================================
+```{r}
+seq(from = -10, to = 10, by = 1)
+seq(from = 1, length = 25, by = 2 )
+```
+
+Simple Manipulations
+========================================================
+
+```{r}
+weights <- c(55, 60, 45, 70, 56, 73, 59, 82)
+sum(weights)
+mean(weights)
+sd(weights)
+var(weights)
+length(weights)
+```
+
+Lists
+========================================================
+- Lists can contain many different types of elements inside.
+```{r}
+myList <- list(c(1,2,3), 15, "hello")
+print(myList)
+```
+
+- Select an element from lists
+```{r}
+myList[1]
+myList[[1]][2]
+myList[2]
+```
+
+
+Matrices
+========================================================
+- A matrix is **two-dimensional** recteangular data set.
+```{r}
+myMatrix <- matrix(c(1,2,3,4,5,6), nrow = 2, ncol = 3, byrow = TRUE)
+print(myMatrix)
+```
+
+- Select an element from matrices
+```{r}
+myMatrix[1,2]
+myMatrix[2,]
+myMatrix[,1]
+dim(myMatrix)
+```
+
+Matrices - II
+========================================================
+```{r}
+myMatrix2 <- matrix(c(-6:-1), nrow = 2, ncol = 3, byrow = TRUE)
+myMatrix + myMatrix2
+```
+```{r}
+myMatrix %*% c(1,2,3)
+diag(myMatrix2) #diagonal    
+t(myMatrix2)  #transpose of matrix
+```
+
+
+Arrays
+========================================================
+- Arrays can be of any number of dimensions
+```{r}
+myArray <- array(c('uno','dos', 'tres'), dim = c(3,3,3))
+print(myArray)
+```
+
+Factors
+========================================================
+- They are categorical variables.
+- You can create using a vector. Factors stores the vector along with distinct values of the elements in the vector as labesl.
+- The labels are always character irrespective of wheter it is numeric or character or Boolean etc. input vector. They are useful in statistical modelling.
+
+```{r}
+myVector <- c('blue', 'red', 'violet', 'red', 'red', 'blue')
+print(myVector)
+myVectorFactor <- factor(myVector)
+print(myVectorFactor)
+print(nlevels(myVectorFactor))
+```
+
+Tidy Data Concept and Data Frames
+========================================================
+**Tidy Data**
+- Each variable forms a column
+- Each observation forms a row
+- Each type of observational unit forms a table
+
+```{r}
+mySurvey <- data.frame(
+  name = c("Harry", "Ron", "Hermione", "Draco", "Cedric"),
+  gender = c("Male", "Male", "Female", "Male", "Male"),
+  age = c(11, 11, 11, 11, 12),
+  bloodStatus = c("Half-blood", "Pure-blood","Muggle-born", "Pure-blood", NA),
+  house = c("Gryffindor", "Gryffindor", "Gryffindor", "Slytherin", NA)
+  )
+print(mySurvey)
+```
+
+Indexing, Selecting and Modifying
+========================================================
+
+```{r}
+is.na(mySurvey)
+mySurvey[5,4] <- "Pure-blood"
+str(mySurvey)
+levels(mySurvey$house) <- c("Gryffindor", "Slytherin", "Hufflepuff")
+mySurvey[5,5] <- "Hufflepuff"
+print(mySurvey)
+```
+
+Indexing, Selecting and Modifying - II
+========================================================
+```{r}
+mySurvey$name
+head(mySurvey)
+tail(mySurvey)
+```
+- look for:
+```{r, eval = FALSE}
+x %in% y, !(x %in% y), !x, !is.na()
+```
+
+R Packages
+========================================================
+- R has a lot of packages for you to make some work easily done!
+- **CRAN** is the name of the R package repository but you can find and download many R packages on Github.
+- These packages are about: statistics, modelling, visualisation, manipulating, documentation, making websites/applications etc.
+
+Tidyverse
+========================================================
+- dplyr, broom, tidyr, lubridate 
+- ggplot2
+- purrr, magrittr, forecats, tibble
+- readxl
+
+Installation 
+========================================================
+
+```{r, eval = FALSE}
+install.packages('tidyverse')
+library(tidyverse)
+```
+
+
+Datasets
+========================================================
+- R has many example datasets and you can look at the list of datasets from [here](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/00Index.html) to make practice.
+- Today we will use **20170930dataset** and learn how to load a data set on working directory and manipulate it with **dplyr** functions. 
+
+  - To read a dataset, you can use these functions, according to your file type: *read.csv*, *read.table*, *read.xls*, *read.xlsx*  etc.
+  - You need **path** of the file: where you store your file. For example *(/Users/hazelkavili/Desktop/R-LadiesIstanbul/20170930dataset.csv)*
+
+
+```{r}
+myDataset <- read.csv(file = "~/Desktop/R-LadiesIstanbul/20170930dataset.csv", sep = ",", header = TRUE)
+print(myDataset)
+```
+
+
+Structure of Dataset
+========================================================
+```{r}
+str(myDataset)
+summary(myDataset)
+```
+
+Magical Words from dplyr!
+========================================================
+- **Variables(columns)**
+  - select
+  - mutate
+
+- **Observations (rows)**
+  - filter
+  - arrange
+
+- **Groups**
+  - summarise
+
+*look for Hadley's book for more magical words*
+
+ %>% (Pipe) Operator
+========================================================
+- Basically tells R to take the value of that which is to the left and pass it to the right as an argument.
+    - cmd + shft + m
+    - kntr + shft + m
+
+```{r}
+library(dplyr)
+myDataset %>% filter(MarketValue > 5) %>% summarise(Average = mean(Assets))
+```
+
+Select
+========================================================
+- Choosing is not losing! 
+```{r, eval = FALSE, warning = FALSE}
+select(dataframe, var1, var2, ...)
+select(dataframe, 1:4, -2)
+```
+
+```{r}
+smallSet <- myDataset %>% select(Company, MarketValue)
+print(smallSet)
+```
+
+- There are also helper functions: **starts_with**, **end_with**, **contains**
+
+Mutate
+========================================================
+- Deals with info in your data which is not display
+
+```{r, eval = FALSE, warning = FALSE}
+mutate(dataframe, newVariable = var1 + var2)
+mutate(dataframe, x = a + b, y = x + c)
+```
+
+```{r}
+mutateSet <- myDataset %>% mutate(TotalMoney = Assets + Profits)
+head(mutateSet)
+```
+
+Filter
+========================================================
+- Filter out rows, specific type of observation
+```{r, eval = FALSE, warning = FALSE}
+filter(dataframe, logicaltest)
+```
+
+```{r}
+filteredSet <- myDataset %>% filter(Assets < 10 & Profits > 1)
+print(filteredSet)
+```
+
+Arrange
+========================================================
+- Helps order observation (default ascending)
+
+```{r, eval = FALSE, warning = FALSE}
+arrange(dataframe, var1)
+arrange(dataframe, var1, desc(var2))
+```
+
+```{r}
+arrangedSet <- myDataset %>% select(GlobalRank, Company, MarketValue) %>%  arrange(desc(MarketValue))
+print(arrangedSet)
+```
+
+Summarise
+========================================================
+- Helps order observation (default ascending)
+
+```{r, eval = FALSE, warning = FALSE}
+summarise(dataframe, newVar = expression,. . .)
+summarise(dataframe, sum = sum(A), avg = mean(B)..)
+```
+
+```{r}
+summarisedSet <- myDataset %>% filter(grepl('Bank', Company) | grepl('bank', Company)) %>% 
+  summarise(averageAssets = mean(Assets), averageSales = mean(Sales))
+
+print(summarisedSet)
+```
+
+*look for grepl*
+
+
+References
+========================================================
+- Mine Cetinkaya-Rundell's  [Teaching Data Science  to New Users](https://github.com/mine-cetinkaya-rundel/2017-07-05-teach-ds-to-new-user) presentation
+- Ismail Sezen's [github](https://isezen.github.io/r-presentation/intro.html)
+- [data.world](data.world) for many datasets
+- Google :) 
+- [Data Carpentary](http://www.datacarpentry.org/)
+
+
+========================================================
+# <center> **Any questions?** </center>
+
+#### - hazel@rladies.org & istanbul@rladies.org
+#### - twitter.com/RLadiesIstanbul
+#### - meetup.com/rladies-istanbul
+
+
