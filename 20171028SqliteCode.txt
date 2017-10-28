@@ -1,0 +1,49 @@
+sqlite3 RLadiesTestDB.db
+.databases
+.tables
+
+-- Create table 'TEST_TABLE'
+CREATE TABLE TEST_TABLE(CUST_ID INTEGER,
+						CUST_NAME TEXT);
+
+-- Insert 
+INSERT INTO TEST_TABLE VALUES(1,"Ahmet");
+
+-- Select
+SELECT * FROM TEST_TABLE;
+
+.header on
+.mode column
+.timer on
+
+SELECT * FROM TEST_TABLE;
+
+INSERT INTO TEST_TABLE VALUES(2,"Mehmet");
+
+SELECT * FROM TEST_TABLE;
+
+-- Where
+SELECT * FROM TEST_TABLE 
+WHERE CUST_NAME = 'Mehmet';
+
+-- Alter (New Column, Rename Column)
+ALTER TABLE TEST_TABLE ADD COLUMN AGE INTEGER;
+
+SELECT * FROM TEST_TABLE;
+
+-- Update
+UPDATE TEST_TABLE 
+SET AGE = 33
+WHERE CUST_NAME = 'Mehmet';
+
+SELECT * FROM TEST_TABLE;
+
+UPDATE TEST_TABLE 
+SET AGE = 22
+WHERE CUST_NAME = 'Ahmet';
+
+SELECT * FROM TEST_TABLE;
+
+-- COMMIT
+BEGIN;
+COMMIT;

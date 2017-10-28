@@ -1,0 +1,16 @@
+-- SQLite - Commands
+.help --Show this message
+.headers -- Turn display of headers on or off
+.import -- Import data from FILE into TABLE
+.mode  -- Set output mode where MODE is one of −
+ 		-- csv − Comma-separated values
+		-- column − Left-aligned columns.
+		-- html − HTML <table> code
+		-- insert − SQL insert statements for TABLE
+	 	-- line − One value per line
+		-- list − Values delimited by .separator string
+		-- tabs − Tab-separated values
+		-- tcl − TCL list elements
+.timer
+.show
+.exit
