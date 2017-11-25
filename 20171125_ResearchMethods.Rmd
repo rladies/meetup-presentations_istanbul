@@ -27,6 +27,20 @@ knitr::include_graphics("images/sel1.png" )
 knitr::include_graphics("images/team1.png" )
 ```
 
+# install.packages
+Bu alanı her defasında çalıştırmak zorunda değilsiniz. Paketler çalışma alanınızda yüklü değilse önce indirmeniz sonra library fonksiyonunu çalıştırmanız gerekir. eval = FALSE diyerek bunu çalıştırmanızı önlemiş oluyorum, siz eval = TRUE diyerek paketleri yüklemesini de sağlayabilirsiniz.
+
+```{r echo = TRUE, eval = FALSE}
+install.packages("tidyverse")
+install.packages("reshape2")
+install.packages("plotly")
+install.packages("knitr")
+install.packages("kableExtra")
+install.packages("sjPlot")
+```
+
+
+
 #	Packages
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
