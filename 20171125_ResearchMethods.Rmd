@@ -1,0 +1,526 @@
+---
+title: "Research Methods with R"
+author: "Selcuk Akbas"
+date: "November 25, 2017"
+output:
+  ioslides_presentation: default
+  beamer_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+##	Selcuk Akbas
+
+- <selcukakbas@hotmail.com>
+- <https://twitter.com/selcukakbas>
+- <http://www.selcukakbas.com.tr/>
+```{r echo=FALSE, out.width='80%'}
+knitr::include_graphics("images/sel1.png" )
+```
+
+
+
+## Bizim takım : Ipsos SMAP
+```{r echo=FALSE, out.width='100%'}
+knitr::include_graphics("images/team1.png" )
+```
+
+#	Packages
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse) # data proses, summary, table
+library(reshape2) # data proses
+library(plotly) # interaktif grafik
+library(knitr) # rmarkdown
+library(kableExtra) # güzel talo output
+library(sjPlot) # ozel göserimler
+
+```
+
+## R Kaynaklar
+
+- Free-Course <https://www.datacamp.com/>
+- Başlangıç <https://www.statmethods.net/stats/descriptives.html>
+
+- Orta <https://tidyverse.org>
+
+- Külliyat <http://r4ds.had.co.nz/index.html>
+
+## Araştırma Tasarımı 
+
+– Amaç
+
+– Hedef Kitle
+
+– Soru Formu
+
+– Örnekleme
+
+– Data Proses
+
+– Analiz
+
+– Raporlama
+
+
+##	Örnekleme
+
+- Temsiliyet
+- Örneklem büyüklüğü
+- Örneklem Dağılımı
+
+## Örneklem Büyüklüğü 
+
+<https://en.wikipedia.org/wiki/Margin_of_error>
+
+- Örneklem büyüklüğü belirlenirken, maksimum hata payı prensibini kullanıyoruz
+- Hata payı, p değeri 0.5 olduğunda maksimuma ulaşır. 
+- Bu yüzden formülde p değeri 0.5 alınır.
+
+
+$$ z * \sqrt\frac{p * q}{n} $$
+
+## Maksimum Hata payi fonksiyonu
+$$ z * \sqrt\frac{p * q}{n} $$
+```{r echo=TRUE}
+hata_payi <- function(Uzay = 55000000, Orneklem) {
+
+  p <- 0.5
+  q <- 1 - p
+  
+  if (  Orneklem / Uzay < 0.05) { # örneklem < %5Uzay
+      MyHataPayi <- 1.96 * sqrt((p * q) / Orneklem)  
+  } else { # örneklem > %5Uzay
+      MyHataPayi <- (1.96 * sqrt((p * q) / Orneklem)) * 
+                      sqrt( (Uzay - Orneklem) / (Uzay - 1))  
+  }
+MyHataPayi
+}
+
+```
+
+## Örneklem büyüdüğünde hata payi nasıl değişir ? 
+- 50 ile 1000 arası örneklem büyüklüklerinin hata payı eğrisini çizmek istersek :
+
+```{r echo=TRUE}
+
+orn <- seq(50,1000, by = 10)
+hp <- sapply(orn,  function(x) hata_payi(Orneklem = x) )
+df <- data.frame(orn, hp)
+
+gg <- ggplot(df, aes(x = orn, y = hp )) + 
+  geom_point() + xlab("Örneklem") + ylab("Hata Payı") +
+  labs(title = "Örnklemlem büyüklüğü ile hata payı ilişkisi"
+       , subtitle = "Ters logaritmik ilişki vardir")
+
+```
+- sonuç sonraki slide
+
+## ggplotly ile interaktif grafikler..
+```{r echo=TRUE}
+
+ggplotly(gg + theme_minimal())
+
+```
+
+
+## Daha fazlası için
+
+- Örneklem büyüklüğü ve hata payı için daha detaylı 
+çıktılar veren linki de inceleyebilirsiniz 
+
+
+<https://gist.github.com/mrdwab/984707>
+
+
+
+#	Soru Formu Hazırlama (10dk) – Örnek soru tipleri
+
+Gerçek çalışmalardan örnek sorular üzerinden geçelim
+
+# Memnuniyet calismalari
+
+## Genel Memnuniyet
+
+```{r echo=FALSE, out.width='100%'}
+knitr::include_graphics("images/soru1.png" )
+```
+
+- Memnuiyet / Genel görüş gibi sorular
+alt boyutlardan önce sorulmalı
+
+## Alt boyutlar
+```{r echo=FALSE, out.width='100%'}
+knitr::include_graphics("images/soru2.png" )
+```
+
+## Açık uçlu sorular
+```{r echo=FALSE, out.width='100%'}
+knitr::include_graphics("images/soru3.png" )
+```
+
+## Tek seçenek
+- Soru formunda seçenek numaraları mutlaka bulunmali
+
+```{r echo=FALSE, out.width='100%'}
+knitr::include_graphics("images/soru4.png" )
+```
+
+# Ürün Kullanim calismalari
+
+## Kota sorusunu özellikle dikkat çekilmeli
+```{r echo=FALSE, out.width='100%'}
+knitr::include_graphics("images/soru5.png" )
+```
+
+## Funnel dediğimiz ardışık sorular
+```{r echo=FALSE, out.width='100%'}
+knitr::include_graphics("images/soru6.png" )
+```
+
+## Kullanım sıklığı sorusu
+```{r echo=FALSE, out.width='100%'}
+knitr::include_graphics("images/soru7.png" )
+```
+
+## Likert ölçek ifade katılım sorusu
+```{r echo=FALSE, out.width='100%'}
+knitr::include_graphics("images/soru8.png" )
+```
+
+## Markaya atıf soruları / binary cevap
+```{r echo=FALSE, out.width='100%'}
+knitr::include_graphics("images/soru9.png" )
+```
+
+
+
+#	Veri Setini Oluşturma (15dk) – Soru tipine göre veri giriş biçimi
+
+## Datayi okuyalım / Excel
+
+- Excel için en hızlı bağlantı bu şekilde
+
+```{r echo=TRUE}
+library(readxl)
+
+dat <- read_xlsx("data/ornek_data.xlsx", sheet = "data", skip = 1)
+
+names(dat)
+```
+
+
+## Datayi okuyalım / Clipboard - CopyPaste
+
+- Excel için en hızlı bağlantı bu şekilde
+
+```{r eval=FALSE, include=TRUE, echo=TRUE}
+library(readxl)
+
+dat <- read.table(file = "clipboard", sep = "\t"
+                  , header=TRUE,stringsAsFactors = FALSE)
+
+```
+
+ 
+
+# değişkenleri uygun sekilde tanimlamaliyiz
+- En sıkıcı bölüm
+
+
+## Ordinal değişkenler 
+
+```{r echo=TRUE}
+
+xfac <- c("gm1", "sys1", "sys2", "sys3", "sys4", "sys5", "c5d","c6" )
+
+dat[,xfac] <- dat[,xfac] %>% 
+  lapply(function(x) factor(x, exclude = "99", ordered = T) )
+
+```
+## Kategorik değişkenler 
+```{r echo=TRUE}
+dat$sys6 <- factor(dat$sys6, levels=c(1,2,99)
+                   , labels=c("Evet yaşadım"
+                              ,"Hayır yaşamadım"
+                              ,"Hatırlamıyorum") )
+
+dat$k1 <- factor(dat$k1, levels=c(1:3)
+                 , labels=c("Satış temsilcisi"
+                            ,"Çağrı merkezi"
+                            ,"İnternet şube") )
+
+dat$t4 <- factor(dat$t4, levels=c(2,3)
+                 , labels=c("25-29", "30-40"), ordered = T  )
+
+```
+## Funnel sorusu, markalar
+```{r echo=TRUE}
+xmar <- c("s1a", "s1b", "s1c", "s1d", "s1e", "s1f", "s1g")
+
+dat[,xmar] <- dat[,xmar] %>% 
+  lapply(function(x) 
+    factor(x, levels=c(1:13)
+           , labels=c('Aroma' , 'Cappy' , 'Dimes' 
+                      , 'Exotic' , 'Tamek' , 'Pinar' 
+                      , 'Halk' , 'Ulker Icim' , 'Juss' 
+                      , 'Meysu' , 'Meyoz' , 'Jucy' , 'Uludag') ) )
+
+```
+## Likert ölçek, ordinal tanımlama
+```{r echo=TRUE}
+xmem <- c('m2_01' , 'm2_02' , 'm2_03' , 'm2_04' , 'm2_05' 
+          , 'm2_06' , 'm2_07' , 'm2_08' , 'm2_09' , 'm2_10' 
+          , 'm2_11' , 'm2_12' , 'm2_13' , 'm2_14' , 'm2_15' 
+          , 'm2_16')
+
+dat[,xmem] <- dat[,xmem] %>% 
+  lapply(function(x) 
+    factor(x, levels=c(1:5), 
+           labels=c('Kesinlikle Katılmıyorum' 
+                    , 'Katılmıyorum' 
+                    , 'Ne Katılıyorum Ne Katılmıyor' 
+                    , 'Katılıyorum' 
+                    , 'Kesinlikle Katılıyorum')
+           , ordered = T ) )
+
+```
+
+## Datanın yapisina bakalim
+
+```{r echo=TRUE}
+
+str(dat[,1:20])
+
+```
+
+## Datanın yapisina bakalim
+
+```{r echo=TRUE}
+
+str(dat[,21:40])
+
+```
+
+#	Tablolama (15dk) 
+
+##	Tablolama – Frekans, çapraz tablo
+- base R
+```{r echo=TRUE, warning=FALSE}
+
+with(dat, table(sys6, k1)) %>% 
+  kable()
+
+```
+
+##	Tablolama – Frekans, çapraz tablo
+- dplyr way
+```{r echo=TRUE, warning=FALSE}
+
+dat %>%  
+  group_by(sys6, k1) %>% 
+  summarise(say = n()) %>% 
+  spread(k1, say) %>% 
+  kable(format = "markdown")
+
+```
+
+##	Tablolama - ardışık soru
+- dplyr + reshape2 way
+```{r echo=TRUE, warning=FALSE, out.height=1000}
+
+dat %>%  
+  dplyr::select(anketid, s1a:s1g) %>% 
+  melt(id.vars = "anketid", na.rm = T) %>%
+  group_by(variable) %>% 
+  mutate(s1baz = n_distinct(anketid) ) %>%  
+  group_by(variable, value) %>%  
+  summarise(s1_pay = n_distinct(anketid) / mean(s1baz) * 100) %>%  
+  mutate(s1_pay = round(s1_pay,1)) %>% 
+  spread(variable, s1_pay) -> xtables1
+
+```
+
+##	Tablolama - ardışık soru
+- dplyr + reshape2 way / soru bazli yüzde
+```{r echo=FALSE, warning=FALSE, out.height=1000}
+
+xtables1
+
+```
+## Tablolama likert with sjPlot 
+- <http://www.strengejacke.de/sjPlot/sjt.stackfrq/>
+```{r echo=TRUE, eval=FALSE}
+library(sjPlot) ; library(sjmisc) ; library(knitr)
+
+dat %>%  
+  dplyr::select(m2_01:m2_16) %>%
+  sjt.stackfrq(show.n = TRUE, show.total = TRUE
+               , show.skew = TRUE
+               , show.kurtosis = TRUE
+               , altr.row.col = TRUE)  
+
+```
+
+```{r echo=FALSE}
+knitr::include_graphics("images/sj1.png" )
+```
+
+## liker plot with sjPlot 
+- <http://www.strengejacke.de/sjPlot/sjp.likert/>
+```{r echo=TRUE, eval=FALSE}
+library(sjPlot) ; library(sjmisc) ; library(knitr)
+dat %>%  
+  dplyr::select(m2_01:m2_16) %>% 
+  sjp.likert(sort.frq = "pos.asc", geom.colors = "RdBu")
+
+```
+```{r echo=FALSE}
+knitr::include_graphics("images/sj2.png" )
+```
+
+
+##	İstatistiksel Hipotez Testleri 
+- z, t, chi-square ve diğer.
+
+- En basit anlatımla
+Hipotez testi, dagilimlarin birbirini 
+kesip kesmediğini analiz etmektir
+
+```{r echo=FALSE, out.width='80%'}
+knitr::include_graphics("images/hipo1.png" )
+```
+
+## Örneklem dağılımı
+```{r echo=FALSE, out.width='80%'}
+knitr::include_graphics("images/hipo3.png" )
+```
+
+## z-test - Ortalama
+
+- Örneklem ortalamasının, ana kütle ortalaması ile karşılaştırırız.
+
+Ortalamalar Eşittir :
+\[ H_o: \mu = \mu_{0} \] \[ H_a: \mu \neq \mu_{0} \]
+
+Ortalama 37'ye eşittir :
+\[ H_o: \mu = 37 \] \[ H_a: \mu \neq 37 \]
+
+Test istatistiği : 
+\[ z = \frac{\bar{x} - \mu_0}{\sigma/\sqrt{n}} \]
+
+# parametric tests
+
+
+##  chi-square test
+```{r echo=TRUE, eval=FALSE}
+sjt.xtab(dat$sys6, dat$t4, show.row.prc = TRUE, 
+         show.cell.prc = TRUE, show.legend = TRUE)
+
+```
+
+```{r echo=FALSE, out.width='60%'}
+knitr::include_graphics("images/sj3.png" )
+```
+
+## independent 2-group t-test
+- where y is numeric and x is a binary factor
+```{r echo=TRUE}
+# library(mosaic)
+xt <- with(dat, t.test(num1~bin1)) 
+xt
+# xpt(q=xt$statistic, lower.tail=FALSE, df=99)
+
+
+```
+
+## independent 2-group t-test
+- where y1 and y2 are numeric
+```{r echo=TRUE}
+xt <- with(dat, t.test(num1,num2)) 
+xt
+# xpt(q=xt$statistic, lower.tail=TRUE, df=99)
+```
+
+## paired t-test
+- where y1 & y2 are numeric
+```{r echo=TRUE}
+xt <- with(dat, t.test(num1,num2, paired = T)) 
+xt
+```
+ 
+
+## one sample t-test
+- Ho: mu=3
+```{r echo=TRUE}
+xt <- with(dat, t.test(num2,mu=3)) 
+xt
+# xpt(q=xt$statistic, lower.tail=TRUE, df=99)
+```
+
+## anova
+- One Way Anova (Completely Randomized Design)
+```{r echo=TRUE}
+
+fit <- aov(num1 ~ factor(t4), data=dat)
+
+# display Type I ANOVA table
+summary(fit)
+
+```
+
+## anova diagnostic plots
+```{r echo=TRUE}
+layout(matrix(c(1,2,3,4),2,2))
+plot(fit)
+
+```
+
+## anova Multiple Comparisons
+```{r echo=TRUE}
+
+# Multiple Comparisons
+TukeyHSD(fit) # where fit comes from aov()
+ 
+```
+
+
+# Non-Parametric tests
+- Benim alanim degil ama örnekler hazırladım
+
+## independent 2-group Mann-Whitney U Test 
+- where y is numeric and A is A binary factor
+```{r echo=TRUE}
+with(dat, wilcox.test(num1~bin1)) 
+```
+
+## independent 2-group Mann-Whitney U Test
+- where y and x are numeric
+```{r echo=TRUE}
+with(dat, wilcox.test(num1,num2) )
+```
+
+## dependent 2-group Wilcoxon Signed Rank Test 
+- where y1 and y2 are numeric
+```{r echo=TRUE}
+with(dat, wilcox.test(num1,num2,paired=TRUE) )
+```
+
+## Kruskal Wallis Test One Way Anova by Ranks 
+- where y1 is numeric and A is a factor
+```{r echo=TRUE}
+with(dat, kruskal.test(num1~factor(t4))) 
+```
+
+
+## Randomized Block Design - Friedman Test 
+- where y are the data values, A is a grouping factor
+and B is a blocking factor
+```{r echo=TRUE, eval=FALSE}
+with(dat, friedman.test(num1~t4|sys1))
+
+```
+
+
