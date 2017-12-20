@@ -1,0 +1,74 @@
+---
+title: "Web Scraping"
+output: html_notebook
+---
+## Web Scraping Hakkında
+Web kazıma veya bilinen adıyla Web Scraping, çeşitli yazılım ve metotlar ile web sitelerinden içerik kopyalama veya belli bilgileri alma işlemini sağlayan yöntemlere denir. Bu yöntemlerle, web üzerinde yer alan sitelerden veri içe aktarımını, kopyala yapıştır yaparken yaşanacak tüm sorunlar ortadan kaldırılarak sağlanabilir. Ayrıca, hızlı şekilde onlarca sayfadaki içeriği tek bir kodla otomatik olarak içeri aktarılabilir. Webden doğrudan R ortamına veri çekimini sağlayacak paketlerden biri de `rvest`.
+
+## Paket Kurulumu
+
+```{r}
+install.packages("rvest")
+library(rvest)
+```
+
+## Veri Çekilmesi
+[rvest](https://github.com/hadley/rvest) paketi, web üzerinde yer alan görsel, tablo, başlık ve yazı gibi her türlü içeriğin R ortamına aktarılmasını sağlayan bir pakettir. `read_html()` fonksiyonu kaynak kodunun kaydedilmesini, `html_nodes()` fonksiyonu kaydedilen kaynak kodu içinde istenen bilgileri içeren node'un çekilmesini, `html_text()`ise çekilen node içindeki verinin alınmasını sağlar.
+```{r echo=TRUE}
+# Kaynak kodunun içeriye aktarılması
+page        <- read_html("http://www.imdb.com/title/tt2527336/")
+
+# Kaynak kodu içindeki strong span node'unun çekilmesi
+movie.node  <- html_nodes(page,"strong span")
+
+# Seçilen node'un içindeki verinin alınması
+movie.score <- html_text(movie.node)
+
+movie.score 
+```
+rvest tamamiyle pipe (%>%) ile uyumludur ve bağlantılı fonskiyonlar yazılmasına olanak tanır. Yukarıda belirtilen fonksiyon aşağıdaki gibi de yazılabilir.
+
+```{r echo=TRUE}
+movie.score <- read_html("http://www.imdb.com/title/tt2527336/") %>% 
+                html_nodes('strong span') %>% 
+                html_text()
+movie.score
+```
+
+## Verilerin Seçileceği Node'ları Belirlemek
+İçeri aktardığımız kaynak kod içinde onlarca farklı veri, onlarca farklı adresler içinde bulunur. En basit haliyle bu adreslere node adı verilir. İlgilendiğimiz verinin hangi node içinde bulunduğunu kaynak kod içinde arayarak bulabiliriz. Ama bu işi daha kolaylaştıran programlar da mevcut. Node’lar içinde hangisinin bizim aradığımız veriyi içerdiğini bulmak için [Selector Gadget](http://selectorgadget.com) adlı bir Chrome eklentisinden faydalanabiliriz. Kurulumunu da [bu adresten](http://selectorgadget.com) yapabilirsiniz.  
+
+Selector Gadget ile ilgilendiğimiz verinin node adresini görebiliyoruz. Eklenti butonuna bastıktan sonra fare imleciniz ile çekilmesini istediğiniz veriyi içeren en küçük kutuya tıklıyorsunuz. Alttaki adres satırı ve kutunun yanındaki konum, değerin adresini gösteriyor. Bu örnekte adresiminiz “strong span” olduğunu görüyoruz.
+
+Bazı durumlarda node'ları bulmak gerçekten zor olabiliyor. Bu durumda, ilgili sayfadaki tüm node'ların dökümünü alıp içinden seçmek daha mantıklı oluyor. Seçtiğiniz sayfadaki tüm node isimlerini aşağıdaki kod ile çekmeniz mümkün.
+
+```{r}
+all_nodes <- read_html("https://eksisozluk.com/r--32467") %>% 
+                html_nodes("*") %>% 
+                html_attr("class") %>% 
+                unique()
+head(all_nodes,10)
+```
+
+## Uygulama
+Bir ekşi sözlük başlığındaki entry’lerin giriş tüm tarihlerini çekelim. Benzer şekilde web sayfasını önce R ortamına indiriyoruz. Bunun için ekşi sözlükteki [r başlığını](https://eksisozluk.com/r--32467) kullanacağız. Bunun için daha önce yaptığımız gibi **Selector Gadget** uygulaması ile entry’lerin tarihlerini belirten en küçük kutucuğa tıklıyoruz.
+
+Bu şekilde tarih bilgisinin `.permalink` adresinde yer aldığını öğreniyoruz. Herhangi bir tarih seçtiğimizde, diğer tüm entry’lerdeki tarihlerin de sarı renk ile işaretlendiğini göreceksiniz. Sarı ile işaretli kutular aynı adresteki (`.permalink` adresli) diğer verileri göstermektedir. Biz tüm verileri çekmek istediğimiz için bu .permalink adresi kullanacağız. 
+```{r}
+eksi_dates <- read_html("https://eksisozluk.com/r--32467") %>% 
+                html_nodes(".permalink") %>% 
+                html_text()
+eksi_dates
+```
+Benzer şekilde sayfadaki kullanıcıların takma adlarının adresini öğrenmek isteseydik, onun adresinin de `.entry-author` olduğunu görecektik.
+
+```{r}
+eksi_author <- read_html("https://eksisozluk.com/r--32467") %>% 
+                html_nodes(".entry-author") %>% 
+                html_text()
+eksi_author
+```
+
+## Daha Fazlası İçin
+* Rstudio Blog'unda rvest hakkındaki bildiri (https://blog.rstudio.com/2014/11/24/rvest-easy-web-scraping-with-r/)
+* rvest'in Github sayfası (https://github.com/hadley/rvest)
