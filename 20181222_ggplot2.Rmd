@@ -1,0 +1,138 @@
+---
+title: "R graphics with ggplot2"
+author: "Orkun Berk Yüzbaþýoðlu"
+date: "22 Aralýk 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+These notes are based on the course [Introduction to the Tidyverse](https://www.datacamp.com/courses/introduction-to-the-tidyverse).
+
+## Geometric Objects And Aesthetics
+
+### Aesthetic Mapping
+
+In ggplot2, *aesthetic* means "something you can see". Examples include: x, y, color, fill, size, alpha, labels and shape.Aesthetic mappings are set with the `aes()` function.
+
+### Geometic Objects (`geom`)
+
+Geometric objects are the actual marks we put on a plot. Examples include:
+
+-   points (`geom_point`, for scatter plots, dot plots, etc)
+-   lines (`geom_line`, for time series, trend lines, etc)
+-   boxplot (`geom_boxplot`, for, well, boxplots!)
+
+A plot must have at least one geom; there is no upper limit. You can add a geom to a plot using the `+` operator
+
+### Gapminder
+
+Throughout the exercises in this document, we'll be visualizing a subset of the gapminder data from the year 1952. First, you'll have to load the ggplot2 package, and create a gapminder_1952 dataset to visualize.
+
+```{r, message= FALSE, warning = FALSE, error = FALSE}
+library(gapminder)
+library(dplyr)
+library(ggplot2)
+
+# Create gapminder_1952 by filtering for the year 1952
+gapminder_1952 <- gapminder %>% filter(year == 1952)
+glimpse(gapminder_1952)
+```
+
+### Scatter Plot
+
+Create the scatter plot of gapminder_1952 so that GDP Per Capita (gdpPercap) is on the x-axis and Life Expectancy (lifeExp) is on the y-axis.
+
+```{r, message= FALSE, warning = FALSE, error = FALSE}
+ggplot(gapminder_1952, aes(x = gdpPercap, y = lifeExp)) +
+  geom_point()
+```
+
+### Log Scales
+
+Change the existing scatter plot to put the x-axis (representing population) on a log scale.
+
+```{r, message= FALSE, warning = FALSE, error = FALSE}
+ggplot(gapminder_1952, aes(x = gdpPercap, y = lifeExp)) +
+  geom_point() + scale_x_log10()
+```
+
+### Adding Color & Size Aesthetic
+
+Create a scatter plot with population (pop) on the x-axis, life expectancy (lifeExp) on the y-axis with continent (continent) represented by the color of the points and the size of the points represents each country's GDP per capita (gdpPercap).
+
+```{r, message= FALSE, warning = FALSE, error = FALSE }
+ggplot(gapminder_1952, aes(x = pop, y = lifeExp, color = continent, size = gdpPercap)) +
+  geom_point() +
+  scale_x_log10()
+```
+
+### Creating a subgraph for each continent
+
+Faceting divide a graph into subplots based on one of its variables, such as the continent.
+
+```{r, message= FALSE, warning = FALSE, error = FALSE }
+# Scatter plot comparing gdpPercap and lifeExp, with color representing continent
+# and size representing population, faceted by year
+gapminder %>% ggplot(aes(x=gdpPercap, y=lifeExp, color=continent,size=pop)) + geom_point() +
+  facet_wrap(~year) + scale_x_log10()
+
+```
+
+### Visualizing median GDP per capita by continent over time
+
+A line plot is useful for visualizing trends over time. In this exercise, we'll examine how the median GDP per capita by continent has changed over time.
+
+```{r, message= FALSE, warning = FALSE, error = FALSE }
+# Summarize the median gdpPercap by year & continent, save as by_year_continent
+by_year_continent <- gapminder %>% group_by(year, continent) %>% 
+  summarise(medianGdpPercap = median(gdpPercap))
+
+head(by_year_continent)
+# Create a line plot showing the change in medianGdpPercap by continent over time
+by_year_continent %>% ggplot(aes(x = year, y = medianGdpPercap, color = continent)) + 
+  geom_line() + expand_limits(y = 0)
+```
+
+### Visualizing median GDP per capita by continent
+
+A bar plot is useful for visualizing summary statistics, such as the median GDP in each continent.
+
+```{r, message= FALSE, warning = FALSE, error = FALSE }
+# Summarize the median gdpPercap by year and continent in 1952
+by_continent <- gapminder %>% filter(year == 1952) %>% group_by(continent) %>% 
+  summarise(medianGdpPercap = median(gdpPercap))
+
+head(by_continent)
+
+# Create a bar plot showing medianGdp by continent
+by_continent %>% ggplot(aes(x = continent, y = medianGdpPercap)) +
+  geom_col()
+```
+
+### Visualizing population with x-axis on a log scale
+
+```{r, message= FALSE, warning = FALSE, error = FALSE }
+gapminder_1952 <- gapminder %>%
+  filter(year == 1952)
+
+# Create a histogram of population (pop), with x on a log scale
+gapminder_1952 %>% ggplot(aes(x = pop)) +
+  geom_histogram() + scale_x_log10()
+```
+s
+### Comparing GDP per capita across continents
+
+A boxplot is useful for comparing a distribution of values across several groups. In this exercise, you'll examine the distribution of GDP per capita by continent. Since GDP per capita varies across several orders of magnitude, you'll need to put the y-axis on a log scale.
+
+```{r, message= FALSE, warning = FALSE, error = FALSE }
+gapminder_1952 <- gapminder %>%
+  filter(year == 1952)
+
+# Add a title to this graph: "Comparing GDP per capita across continents"
+ggplot(gapminder_1952, aes(x = continent, y = gdpPercap)) +
+  geom_boxplot() +
+  scale_y_log10() + ggtitle(label = "Comparing GDP per capita across continents")
+```
