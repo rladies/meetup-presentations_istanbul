@@ -1,0 +1,380 @@
+---
+title: "R ile Sosyal Ağ Analizi"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+
+## Giriş
+
+Ağ, en genel tanımıyla, birbirlerine bağlanmış şeylerden oluşan sistemlere denir. Bir ağ, noktalar ve bu noktaları birbirine bağlayan çizgilerle görselleştirilebilir. Bu noktalar düğüm (İng. node, vertex) veya aktör (İng. aktör) olarak, çizgiler ise bağ (İng. link, tie) veya ayrıt (İng. edge) olarak adlandırılır.
+
+İnsanların fiziksel veya dijital hayattaki sosyal ilişkilerinin bir sosyal ağ oluşturması gibi, hayvanların kendi aralarındaki benzer ilişkiler de sosyal ağ oluşturabilir. Firmaların birbirleri arasındaki finansal ve ticari ilişkiler, ülkelerin ithalat/ihracat ilişkileri, enerji aktarım şebekeleri, besin zincirleri, protein etkileşimleri, internet altyapısı da ağlarla temsil edilebilecek sistemlere örnektir. Bu sistemlerin bir çoğu genellikle kabul edilen anlamda bir sosyallik içermeyebilir. Dolayısıyla, _sosyal ağ analizi_ terimi yerini _ağ analizi_ ve _ağ bilimi_ gibi terimlere bırakmaya başlamıştır. Ancak, aynı temel ağ analiz teknikleri çok farklı tiplerdeki ağlarda (örn. sosyal, ekonomik, biyolojik, fiziksel) benzer şekilde kullanılır.
+
+Ağ analizi, temellerini Sosyoloji ve Matematikten alır. Sosyologlar, ağlar vasıtasıyla insanların diğer insanlarla olan ilişkilerini temsil ederek, insanların davranış ve özelliklerinin bu ilişkileri nasıl değiştirdiğini ve aynı zamanda bu ilişkilerin insanların davranış ve özelliklerini nasıl değiştirdiğini anlamaya çalışmışlardır. Öte yandan, Matematikçiler de ağlar üzerinde çeşitli problemler (örn. en kısa yol problemi) tanımlayarak bunlarla ilgilenmişlerdir. Zamanla, bilgisayar bilimciler, istatistiksel fizikçiler, yaşam bilimcileri gibi bir çok alanda ağlar çalışılmaya başlamış, her bir alan kendi perspektifiyle bu ağ analizi alanını daha da geliştirmiş ve zenginleştirmiştir.
+
+
+Bu açık derste, uygulamalı bir yöntem benimseyerek konu açıklamalarının ve R diliyle uygulamalarının eşzamanlı gitmesi için çaba göstereceğiz. _igraph_ kütüphanesini aşağıdaki şekilde yükleyelim.
+
+
+```{r warning=FALSE}
+library(igraph)
+library(visNetwork)
+library(igraphdata)
+```
+
+Bir ağın düğümler ve bu düğümler arasındaki bağlardan oluştuğunu belirtmiştik. Boş bir ağ oluşturarak buna önce düğümler, sonra bağlar ekleyelim. Bir ağdaki bağlar yönlü veya yönsüz olabilir. Bu örnekte yönsüz bağlara sahip bir ağ oluşturacağız.
+
+```{r}
+g <- make_empty_graph(directed = FALSE)
+g <- g + vertices("Eda", "Can", "Oya", "Ali", "Nur", "Cem")
+plot(g)
+g <- g + edges("Eda", "Oya", "Eda", "Cem", "Can", "Cem", "Ali", "Nur", "Nur", "Eda")
+plot(g)
+g <- g + edge("Ali", "Oya") + edge("Nur", "Cem")
+plot(g)
+
+```
+
+
+Ağda bulunan düğüm ve bağları listeleyelim, düğüm ve bağ adetlerini bulalım.
+```{r}
+V(g)
+E(g)
+vcount(g)
+ecount(g)
+```
+
+Düğümlerin komşu sayısı derece (İng. degree) olarak isimlendirilir. Düğümlerin komşu sayısını, ve komşularının kim olduğunu bulalım.
+
+
+```{r}
+degree(g)
+degree(g, "Ali")
+degree(g, c("Ali", "Oya"))
+neighbors(g, "Ali")
+neighbors(g, "Oya")
+```
+
+
+Verilen iki düğümün komşu olup olmadığını bulalım.
+```{r}
+are_adjacent(g, "Ali", "Oya")
+are_adjacent(g, "Nur", "Oya")
+
+```
+
+
+
+Ağlardaki bağların yönlü de olabileceğini belirtmiştik. Elimizdeki ağın yönsüz olduğunu teyit edelim ve yönlü bir ağa çevirelim. Çevirirken, var olan bağların yerine yönlü iki bağlarla değiştirilmesini sağlayalım. Ardından bu bağlardan bazılarını silelim.
+
+```{r}
+is.directed(g)
+g2 <- as.directed(g, mode ="mutual")
+plot(g2)
+
+g2 <- delete.edges(g2, c("Can|Cem", "Eda|Cem", "Cem|Eda", "Eda|Oya", "Nur|Ali", "Ali|Oya"))
+plot(g2)
+```
+Yönlü ağlarda, bir düğümün derecesi sahip olduğu bağların yönüne göre iç-derece ve dış-derece olmak üzere iki şekilde hesaplanabilir. Aşağıda bunu hesaplayalım.
+
+
+```{r}
+degree(g2)
+degree(g2, mode="in")
+degree(g2, mode="out")
+
+```
+Yönlü bir ağda, verilen bir düğümden diğerine bir bağ olup olmadığını kontrol edelim.
+
+```{r}
+are_adjacent(g2, "Oya", "Eda")
+are_adjacent(g2, "Eda", "Oya")
+```
+
+
+igraph kütüphanesi dğümlerin ve bağların adlarını ve id'lerini farklı şekilde tutmaktadır. her bir düğümün 1'den başlayan ve sıralı giden tam sayı id'leri vardır. Aynı durum bağlar için de geçerlidir. Bu durumda, $n$ düğüm ve $m$ bağdan oluşan bir ağ için düğüm id'leri ${1, 2, .., n}$, bağ id'leri ${1, 2, .., m}$ olarak oluşacaktır.  Bunlarla ilgili bir kaç örnek yapalım.
+
+```{r}
+V(g2)
+as.numeric(V(g2))
+as.numeric(V(g2)["Oya"])
+
+```
+
+
+```{r}
+E(g2)
+as.numeric(E(g2))
+as.numeric(E(g2)["Oya|Ali"])
+get.edge.ids(g2, c("Oya", "Ali"))
+
+```
+
+Düğüm ve bağların id'leri düğüm ve bağların silinmesi ve benzeri durumlarda yeniden numaralandırılmaktadır. Aşağıda kod parçası buna bir örnek gösterir.
+```{r}
+g3 <- delete_edges(g2, "Ali|Nur")
+get.edge.ids(g3, c("Oya", "Ali"))
+```
+Düğümlerin isimleri "name" isminde bir özellik üzerinde tutulmaktadır.
+```{r}
+V(g3)$name
+vertex_attr(g3)
+edge_attr(g3)
+```
+
+Dilersek, kendimiz de düğümlere farklı özellikler ekleyebiliriz.
+
+```{r}
+V(g3)$surname <- c("Som", "Yön", "Kum", "Gün", "Gün", "Gün")
+V(g3)["Ali"]$age <- 24
+
+vertex_attr(g3)
+```
+
+Benzer şekilde bağlara da özellikler ekleyebilir, bu özelliklere göre filtrelemeler yapabiliriz.
+```{r}
+
+E(g3)$weight <- c(0.5, 1., 2.5, 1., 0.5, 1.5, 2.)
+edge_attr(g3)
+
+E(g3)[weight > 1]
+```
+Görselleri de özelleştirebiliriz. Ancak bu derste ağ görselleştirme üzerinde durmayacağız. 
+
+```{r}
+plot(g3, edge.arrow.size=.5, vertex.color="gold", vertex.size=25, 
+
+     vertex.frame.color="gray", vertex.label.color="black", 
+
+     vertex.label.cex=0.8, vertex.label.dist=2, edge.curved=0.2) 
+
+plot(g3, vertex.color="gold", vertex.size=40, layout=layout_in_circle)
+
+
+```
+
+
+## Bazı Temel Ağ İstatistikleri ve Düğüm Merkeziliği
+
+### Florentine Marriages
+
+```{r}
+florentineRelships <- read.csv("http://raw.githubusercontent.com/lhehnke/renaissance-florence-network-data/master/florentine_families_relations_matrix_sample.csv")
+
+head(florentineRelships)
+
+florentineMarriages <- florentineRelships[florentineRelships$marriage ==1, 1:2]
+
+is.data.frame(florentineRelships)
+
+florentine <- graph_from_data_frame(florentineRelships, directed = FALSE)
+
+plot(florentine, layout=layout_with_lgl)
+
+```
+```{r}
+myViz <- function (myGraph){
+  visIgraph(myGraph, randomSeed = 11)  %>%
+  visIgraphLayout(randomSeed = 11) %>%
+  visNodes(
+    font = list(size = 59),
+    shape = "dot",
+    color = list(
+      background = "#0085AF",
+      border = "#013848",
+      highlight = "#FF8000"
+    ),
+    shadow = list(enabled = TRUE, size = 10)
+  ) %>%
+  visEdges(
+    shadow = FALSE,
+    color = list(color = "#0085AF", highlight = "#C62F4B")
+  ) %>%
+  visLayout(randomSeed = 11)
+}
+```
+
+
+```{r}
+
+myViz(florentine)
+```
+### Temel İstatistikler
+```{r}
+V(florentine)
+E(florentine)
+is.directed(florentine)
+```
+
+
+
+```{r}
+average.path.length(florentine)
+
+shortest_paths(florentine, 'Sertini', 'Medici')
+
+distances(florentine, 'Medici', 'Sertini')
+distances(florentine,'Medici')
+mean(distances(florentine, 'Medici'))
+mean(distances(florentine))
+mean(distances(florentine)[lower.tri(distances(florentine))])
+mean_distance(florentine)
+average.path.length(florentine)
+
+diameter(florentine)
+max(distances(florentine))
+```
+```{r}
+degree(florentine)
+hist(degree(florentine),breaks=20)
+max(degree(florentine))
+```
+
+### Düğüm merkezilikleri
+```{r}
+deg <- degree(florentine, normalized=TRUE)
+cls <- closeness(florentine, normalized=TRUE)
+btw <- betweenness(florentine, normalized=TRUE)
+pgr <- page_rank(florentine)$vector
+hub <- hub_score(florentine)$vector
+aut <- authority_score(florentine)$vector
+
+famcen <- data.frame(deg, cls, btw, pgr, hub, aut)
+
+famcen[order(-famcen$deg), ]
+famcen[order(-famcen$cls), ]
+famcen[order(-famcen$btw), ]
+famcen[order(-famcen$pgr), ]
+famcen[order(-famcen$hub), ]
+famcen[order(-famcen$aut), ]
+
+```
+
+### Email Ağı
+
+```{r}
+
+emailDF <- read.csv("https://raw.githubusercontent.com/Zhachory1/eu-email-viz/master/email-Eu-core.txt", sep = " ")
+email <- graph_from_data_frame(emailDF, directed = TRUE)
+vcount(email)
+ecount(email)
+is.directed(email)
+```
+
+
+
+```{r}
+
+myViz(email) 
+```
+
+
+
+```{r}
+is.connected(email)
+count_components(email, mode ="weak")
+components(email, mode = "weak")$csize
+components(email, mode = "weak")$membership[1:10]
+cl = components(email)
+
+emailLCC = induced.subgraph(email,  which(cl$membership == which.max(cl$csize)))
+
+
+```
+```{r}
+is.connected(emailLCC)
+count_components(emailLCC, mode ="weak")
+components(emailLCC, mode = "weak")$csize
+```
+
+
+
+```{r}
+email <- emailLCC
+deg <- degree(email, normalized=TRUE, mode = "in")
+cls <- closeness(email, normalized=TRUE)
+btw <- betweenness(email, normalized=TRUE)
+pgr <- page_rank(email)$vector
+hub <- hub_score(email)$vector
+aut <- authority_score(email)$vector
+
+emlcen <- data.frame(deg, cls, btw, pgr, hub, aut)
+
+emlcen[order(-emlcen$deg), ]
+emlcen[order(-emlcen$cls), ]
+emlcen[order(-emlcen$btw), ]
+emlcen[order(-emlcen$pgr), ]
+emlcen[order(-emlcen$hub), ]
+emlcen[order(-emlcen$aut), ]
+```
+
+
+
+
+## Clustering ve Topluluk Yapısı
+
+### Zachary'nin Karate Kulübü
+
+
+Clustering coefficient
+
+
+Bu ağ üzerindeki toplulukları bulalım.
+
+
+```{r}
+data(karate)
+myViz(karate)
+```
+
+```{r}
+degree(karate)
+transitivity(karate, type="global")
+transitivity(karate, type="local")
+
+```
+
+```{r}
+V(karate)$color <- cluster_louvain(karate)$membership
+myViz(karate)
+```
+
+## İkiparçalı Ağlar, Projeksiyon, Öneri Sistemleri, Düğüm Benzerliği
+
+### Ağı
+
+
+
+```{r}
+movieactorDF <- read.csv("https://raw.githubusercontent.com/triandicAnt/GraphEmbeddingRecommendationSystem/master/data/train_user_ratings.dat", sep = "\t")
+
+head(movieactorDF)
+movieactorDF$movieID <- paste(as.character(movieactorDF$movieID) , "mov")
+movieactor <- graph_from_data_frame(movieactorDF[movieactorDF$rating==5,1:2], directed = FALSE)
+```
+
+```{r}
+vcount(movieactor)
+ecount(movieactor)
+is.bipartite(movieactor)
+bipartite.mapping(movieactor)$res
+V(movieactor)$type <- bipartite_mapping(movieactor)$type
+is.bipartite(movieactor)
+```
+
+```{r}
+actornet <- bipartite.projection(movieactor, multiplicity = TRUE)$proj1
+actornet <- subgraph.edges(actornet, E(actornet)[E(actornet)$weight> 2])
+myViz(actornet)
+
+movienet <- bipartite.projection(movieactor, multiplicity = TRUE)$proj2
+movienet <- subgraph.edges(movienet, E(movienet)[E(movienet)$weight> 3])
+
+myViz(movienet)
+```
+
+
+
